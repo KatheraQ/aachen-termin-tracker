@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Datenschutzerklärung / 隐私政策</h1>
+
+<h2>1. 我们收集什么 / What we collect</h2>
+<p>
+  仅你的邮箱地址,以及你选择监控的 Anliegen 类别。<br>
+  Only your email address and the Anliegen categories you choose to monitor.
+</p>
+
+<h2>2. 用途 / Purpose</h2>
+<p>
+  发送外管局 Termin 提醒邮件,以及订阅确认/退订链接。<br>
+  Sending Termin notification emails and the related opt-in / opt-out links.
+</p>
+
+<h2>3. 法律依据 / Legal basis</h2>
+<p>
+  Art. 6 (1) (a) DSGVO — Einwilligung. 你在订阅时勾选同意,可随时撤回。<br>
+  Art. 6 (1) (a) GDPR — Consent. Granted at signup, revocable at any time
+  via the unsubscribe link in every email.
+</p>
+
+<h2>4. 存储期限 / Retention</h2>
+<p>
+  邮箱保留至你点击退订链接,届时立刻从数据库删除。未在 24 小时内确认订阅的邮箱不会进入正式通知列表。<br>
+  Your email is stored until you click the unsubscribe link, at which point it is
+  removed from our database. Unverified signups are not used for notifications.
+</p>
+
+<h2>5. 第三方 / Third parties</h2>
+<p>
+  邮件通过 Gmail SMTP 发送(Google Ireland Ltd., Dublin, Irland)。Google 作为处理者短暂经手邮件内容。<br>
+  Emails are sent via Gmail SMTP (Google Ireland Ltd., Dublin, Ireland), which briefly processes email content as a sub-processor.
+</p>
+
+<h2>6. 你的权利 / Your rights</h2>
+<p>
+  根据 GDPR,你享有访问、更正、删除、限制处理、数据可携、反对处理及向监管机构投诉的权利。<br>
+  Under the GDPR you have the rights of access, rectification, erasure, restriction,
+  data portability, objection, and to lodge a complaint with a supervisory authority.
+</p>
+
+<h2>7. 联系方式 / Contact</h2>
+<p>
+  {{ datenschutz_contact }}
+</p>
+{% endblock %}

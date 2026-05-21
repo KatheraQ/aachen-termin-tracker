@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Impressum</h1>
+<p>
+  Angaben gemäß § 5 TMG:
+</p>
+<p>
+  {{ impressum.name }}<br>
+  {{ impressum.address }}<br>
+  E-Mail: {{ impressum.email }}
+</p>
+<p style="color:#666; font-size:0.9rem; margin-top:2rem;">
+  Dieses private, nicht-kommerzielle Hobbyprojekt wird unabhängig von der
+  StädteRegion Aachen oder der Stadt Aachen betrieben. Wir haben keinerlei
+  Verbindung zu den Behörden und können keinerlei Garantie für die
+  Verfügbarkeit oder Korrektheit der angezeigten Termin-Informationen geben.
+</p>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+{% if ok %}
+<h1 class="ok">订阅已激活 / Subscription active</h1>
+<p>
+  搞定!以后只要有新的 Termin 空位,我们就会邮件通知你。<br>
+  Done! We'll email you whenever new appointment slots appear.
+</p>
+{% else %}
+<h1 class="err">链接无效 / Invalid link</h1>
+<p>
+  这个确认链接可能已经过期或被使用过了。请回到
+  <a href="/">首页</a> 重新订阅。<br>
+  This confirmation link is invalid or already used. Please <a href="/">subscribe again</a>.
+</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+data/*.db
+data/*.db-journal
+data/browser_profile/
+.DS_Store
+.env
+config.local.yaml
+config.yaml
+data/discover_dump.json
+data/*.log

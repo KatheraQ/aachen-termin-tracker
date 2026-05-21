@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>请查收确认邮件 / Check your inbox</h1>
+<p>
+  我们已经把确认链接发到 <strong>{{ email }}</strong>。<br>
+  We sent a confirmation link to <strong>{{ email }}</strong>.
+</p>
+<p>
+  点击邮件里的链接后,订阅才会生效。如果几分钟内没收到,检查一下垃圾邮件文件夹。<br>
+  Click the link in the email to activate your subscription. If it doesn't arrive within a few minutes, check your spam folder.
+</p>
+{% endblock %}

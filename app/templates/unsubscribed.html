@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+{% if ok %}
+<h1 class="ok">已退订 / Unsubscribed</h1>
+<p>
+  {{ email }} 已经从我们的列表中删除,不会再收到邮件了。<br>
+  {{ email }} has been removed from our list. You won't receive any more emails.
+</p>
+{% else %}
+<h1 class="err">链接无效 / Invalid link</h1>
+<p>
+  这个退订链接无效或已经使用过。<br>
+  This unsubscribe link is invalid or already used.
+</p>
+{% endif %}
+{% endblock %}

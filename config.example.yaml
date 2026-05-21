@@ -1,0 +1,35 @@
+# Copy this file to config.yaml and fill in real values.
+# config.yaml is gitignored so secrets never reach the repo.
+
+app:
+  base_url: "http://localhost:8766"            # change to https://your-domain when public
+  secret_key: "CHANGE_ME"                      # python -c 'import secrets; print(secrets.token_urlsafe(48))'
+  host: "127.0.0.1"
+  port: 8766
+
+scraper:
+  target_url: "https://termine.staedteregion-aachen.de/auslaenderamt/"
+  poll_interval_min_seconds: 60
+  poll_interval_max_seconds: 120
+  headless: true
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  behoerde_label: "Ausländeramt"
+
+anliegen:
+  - id: "rwth_studenten"
+    label_de: "RWTH Studenten"
+    label_zh: "RWTH 学生(延签/居留事务)"
+
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  username: "your-gmail@gmail.com"
+  password: "GMAIL_APP_PASSWORD"               # 16-char App Password, NOT your login password
+  from_address: "Aachen Termin Tracker <your-gmail@gmail.com>"
+
+legal:
+  impressum:
+    name: "YOUR NAME"
+    address: "YOUR STREET, 52XXX Aachen, Germany"
+    email: "your-gmail@gmail.com"
+  datenschutz_contact: "your-gmail@gmail.com"

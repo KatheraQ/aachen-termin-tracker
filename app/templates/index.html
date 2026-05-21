@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>亚琛外管局 Termin 提醒</h1>
+<p>
+  亚琛 RWTH 留学生总是抢不到外管局延签 Termin。这个小工具会持续监控
+  <a href="https://termine.staedteregion-aachen.de/auslaenderamt/" target="_blank" rel="noopener">
+    termine.staedteregion-aachen.de/auslaenderamt/
+  </a>
+  ,一旦有新的空位放出来就发邮件通知你。
+</p>
+<p style="color:#666; font-size:0.9rem;">
+  This service watches the Aachen Ausländeramt booking page and emails you when new appointment slots open up.
+</p>
+
+<form method="post" action="/subscribe">
+  <h2>1. 你的邮箱 / Your email</h2>
+  <label>
+    <input type="email" name="email" required placeholder="you@example.com">
+  </label>
+
+  <h2>2. 想监控哪些类别? / Which categories?</h2>
+  {% for a in anliegen %}
+  <div class="checkbox-row">
+    <input type="checkbox" id="anl-{{ a.id }}" name="anliegen" value="{{ a.id }}">
+    <label for="anl-{{ a.id }}">
+      <strong>{{ a.label_zh }}</strong><br>
+      <span style="color:#666; font-size:0.9rem;">{{ a.label_de }}</span>
+    </label>
+  </div>
+  {% endfor %}
+
+  <h2>3. 隐私同意 / Privacy consent</h2>
+  <div class="checkbox-row">
+    <input type="checkbox" id="privacy" name="accept_privacy" value="yes" required>
+    <label for="privacy">
+      我同意 <a href="/datenschutz">隐私政策</a>。我们仅存储你的邮箱用于发送 Termin 通知,你可以随时退订。<br>
+      <span style="color:#666; font-size:0.9rem;">
+        I accept the <a href="/datenschutz">privacy policy</a>. We only store your email to send Termin alerts; you can unsubscribe at any time.
+      </span>
+    </label>
+  </div>
+
+  <p style="margin-top:1.5rem;">
+    <button type="submit">订阅 / Subscribe</button>
+  </p>
+  <p style="color:#666; font-size:0.85rem;">
+    点击订阅后会收到一封确认邮件,点邮件里的链接才算订阅成功。<br>
+    You will receive a confirmation email — click the link inside to activate your subscription.
+  </p>
+</form>
+{% endblock %}
