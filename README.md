@@ -1,90 +1,131 @@
 # Aachen Termin Tracker
 
-**🌐 Live at [aachen-termin.online](https://aachen-termin.online)**
+<p align="center">
+  <a href="https://aachen-termin.online">
+    <img src="docs/screenshot.png" alt="Subscribe page screenshot" width="640">
+  </a>
+</p>
 
-Watches `https://termine.staedteregion-aachen.de/auslaenderamt/` and emails subscribers
-when new appointment slots appear (visa extension / 延签, first application, eAT pickup).
+<p align="center">
+  <a href="https://aachen-termin.online"><img alt="Live" src="https://img.shields.io/badge/live-aachen--termin.online-d9534f"></a>
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
+  <img alt="Python" src="https://img.shields.io/badge/python-3.12%2B-blue">
+  <img alt="Status" src="https://img.shields.io/badge/status-running-2e7d32">
+</p>
 
-Built for fellow international students at RWTH Aachen who keep missing the Termin window.
+> **亚琛外管局 Termin 抢号通知 · 免费 · 开源**
+>
+> 留学生抢不到 Außenstelle RWTH 延签号是亚琛留学生群里月经话题。
+> 这个小工具每分钟去查一次,有新空位放出就立刻给你发邮件。
+>
+> 👉 **直接订阅:** [aachen-termin.online](https://aachen-termin.online)
 
-> 🇨🇳 给亚琛 RWTH 留学生用的外管局 Termin 抢号提醒。订阅邮箱后,只要有新空位放出,
-> 你的邮箱就会收到通知。完全免费,代码开源。
+---
 
-## Architecture
+## 这解决了什么问题
 
-- **`app/server.py`** — FastAPI signup / verify / unsubscribe (with GDPR-required Impressum + Datenschutz).
-- **`app/scraper.py`** — Playwright driver for the 6-step booking flow (we only need the first 3 to read availability).
-- **`run_scraper.py`** — Background loop: polls every 60–120s, diffs against `seen_slots`, emails subscribers.
-- **SQLite** at `data/tracker.db` — users, subscriptions, seen slots, sent notifications.
-- **Gmail SMTP** via `aiosmtplib` for outbound mail.
+RWTH 国际学生在亚琛外管局(Außenstelle Super C)办延签、首次申请居留卡等业务都需要预约 Termin。但放号极其稀缺,大家不得不每天反复刷
+[`termine.staedteregion-aachen.de/auslaenderamt/`](https://termine.staedteregion-aachen.de/auslaenderamt/) ——
+经常是号刚放出几秒就被抢完。
 
-## Setup
+这个工具替你 24/7 盯着这个页面,**一旦有 RWTH Studenten 类目的新空位出现就发邮件**,你只要去填表预约即可。
 
-```bash
-cd ~/aachen-termin-tracker
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python -m playwright install chromium
+## 怎么工作的
+
+```
+                                     每 60–120 秒
+┌─────────────────────────────────────────────────────────┐
+│  termine.staedteregion-aachen.de/auslaenderamt/         │
+└────────────────────────┬────────────────────────────────┘
+                         │  Playwright 走完 4 步表单
+                         │  读取日历可用日期
+                         ▼
+                ┌──────────────────┐
+                │  SQLite          │
+                │  对比上次结果     │
+                │  发现新日期? ──┐ │
+                └──────────────┬─┘ │
+                               │   │ 是
+                               ▼   ▼
+                       ┌──────────────────┐
+                       │ Gmail SMTP 发信   │
+                       │ 给已确认的订阅者   │
+                       └──────────────────┘
 ```
 
-Edit `config.yaml`:
-- Set `app.secret_key` to a random string (`python -c 'import secrets; print(secrets.token_urlsafe(48))'`).
-- Set `app.base_url` to whatever URL the server is reachable at.
-- Fill in your `smtp.username`, `smtp.password` (Gmail **App Password**, see below), and `smtp.from_address`.
-- Fill in `legal.impressum.*` with your real name and address (German law — Impressumspflicht).
+## 隐私承诺
 
-### Gmail App Password — how to get one
+- **只存你的邮箱**和你勾选的监控类别,别的什么都不要
+- **双重确认 (Double opt-in)**:订阅后你必须点确认邮件里的链接才会激活;不点就不会发任何后续邮件
+- **每封通知邮件里都有一键退订链接**,退订后邮箱即刻从数据库删除
+- 完整隐私政策:[aachen-termin.online/datenschutz](https://aachen-termin.online/datenschutz)
+- Impressum (德国法律要求): [aachen-termin.online/impressum](https://aachen-termin.online/impressum)
 
-App passwords are 16-character one-off passwords for SMTP/IMAP that bypass 2FA. Your regular Gmail login won't work for SMTP.
+## 项目状态
 
-1. Turn on 2-factor auth on your Google Account if it isn't on already: <https://myaccount.google.com/security> → "2-Step Verification".
-2. Once 2FA is on, go to <https://myaccount.google.com/apppasswords>.
-3. Pick "Mail" as the app, "Other" as the device, name it "Aachen Termin Tracker", click Generate.
-4. Copy the 16-character password (spaces don't matter) into `config.yaml` under `smtp.password`.
+| | |
+|---|---|
+| 部署地 | 🇩🇪 Hetzner Cloud(Nürnberg) |
+| 监控目标 | 仅 `Anliegen: RWTH Studenten` |
+| 轮询频率 | 60–120 秒(带随机抖动,克制不扰民) |
+| HTTPS | Let's Encrypt 自动续期 |
+| 故障重启 | systemd 自动拉起 |
 
-⚠️ Don't commit `config.yaml` to a public repo with the password filled in. Add it to `.gitignore` or use `config.local.yaml`.
+---
 
-## First run — discover real selectors
+## For developers
 
-The selectors in `app/scraper.py` are placeholders. Lock them in before running the loop:
+### Architecture
 
-```bash
-python discover.py
-```
+- [`app/server.py`](app/server.py) — FastAPI signup / verify / unsubscribe + Impressum + Datenschutz
+- [`app/scraper.py`](app/scraper.py) — Playwright walks the 4-step TEVIS booking flow and parses the calendar
+- [`app/notifier.py`](app/notifier.py) — `aiosmtplib` + Gmail SMTP
+- [`app/db.py`](app/db.py) — SQLite (users, subscriptions, seen_slots, notifications)
+- [`run_scraper.py`](run_scraper.py) — background loop, diff against last seen, notify subscribers
+- [`discover.py`](discover.py) — one-off exploratory script used while reverse-engineering the booking site
 
-This opens a headed Chromium window and dumps the DOM at the landing page + after you manually click through to the calendar. Use the JSON output to update:
-- `SEL_BEHOERDE_SELECT` (the dropdown on step 1)
-- `SEL_ANLIEGEN_INPUT` + `SEL_ANLIEGEN_LABEL_ROW` (the quantity inputs on step 2)
-- `SEL_CALENDAR_CELL_AVAILABLE` (clickable free dates on step 3)
-- `SEL_NO_SLOTS_BANNER` (the "keine Termine frei" text)
-- The Anliegen `label_de` strings in `config.yaml` (must match the page exactly)
-- `scraper.behoerde_label` in `config.yaml`
-
-## Running
-
-Two processes (use `tmux` / `screen` / systemd / a Procfile):
+### Local setup
 
 ```bash
-python run_server.py   # FastAPI on http://127.0.0.1:8765
-python run_scraper.py  # background polling loop
+git clone https://github.com/KatheraQ/aachen-termin-tracker.git
+cd aachen-termin-tracker
+cp config.example.yaml config.yaml          # then fill in Gmail App Password, Impressum, etc.
+./launch.sh                                 # bootstraps venv, installs Playwright, runs both processes
 ```
 
-Visit <http://127.0.0.1:8765> to subscribe. Subscriptions require email confirmation
-(double opt-in) before notifications are sent.
+Open [http://127.0.0.1:8766](http://127.0.0.1:8766) and subscribe.
 
-## Deployment (Hetzner / DigitalOcean)
+### Production deployment
 
-1. Create a small Ubuntu VPS (Hetzner CX22 ~€4/month works).
-2. Install: `apt install python3.11-venv git`. Clone this repo.
-3. `pip install -r requirements.txt && python -m playwright install --with-deps chromium`.
-4. Edit `config.yaml`. Set `app.base_url` to your domain (`https://termin.example.com`).
-5. Put nginx in front for TLS (`certbot` is fine).
-6. Two systemd units: one for `run_server.py`, one for `run_scraper.py`.
+Two systemd-managed processes behind nginx + Let's Encrypt. The short version (Ubuntu 24.04 on Hetzner Cloud):
 
-## Notes / caveats
+1. `apt install python3.12-venv nginx certbot python3-certbot-nginx ufw`
+2. Open ports 22 / 80 / 443 in UFW
+3. `git clone`, build venv, `playwright install --with-deps chromium`
+4. Drop `config.yaml` with real values (`base_url: https://your-domain`)
+5. Two systemd units: `aachen-termin-server.service` + `aachen-termin-scraper.service`
+6. nginx reverse-proxy `:80` → `127.0.0.1:8766`
+7. `certbot --nginx -d your-domain` for HTTPS
 
-- **Selectors will drift.** Government websites occasionally update their frontend. If the scraper starts returning 0 slots forever, re-run `discover.py`.
-- **Gmail send quota:** ~500/day for a personal Gmail account. At scale, switch to Resend / SendGrid.
-- **Be polite.** 60–120s polling with jitter is conservative; do not lower it. If the StädteRegion notices a single IP hammering them, they may block it.
-- **This service is independent** of the StädteRegion Aachen and the Stadt Aachen. Make that clear in the Impressum (already done in `app/templates/impressum.html`).
+### Reverse-engineering note
+
+The booking site is a [TEVIS](https://www.tevis.de/) installation. The 4-step flow (Funktionseinheit → Anliegen → Standort → Termin) was mapped out via [`discover.py`](discover.py) on 2026-05-21. Key selectors (in [`app/scraper.py`](app/scraper.py)):
+
+- Step 1: click `button.select_mdt_btn`
+- Step 2: set `input.cnc-number` whose `aria-label` matches `Anzahl für das Anliegen <name>.`, click `#WeiterButton`, dismiss `.btn-ok` modal
+- Step 3: JS-click `input[name="select_location"]` (it submits the form)
+- Step 4: parse `body.innerText` for "Kein freier Termin verfügbar"; otherwise extract dates from clickable cells
+
+If the StädteRegion ships a frontend change, re-run `python discover.py` and update the constants.
+
+## Caveats
+
+- **Gmail SMTP caps at ~500/day** for personal accounts — fine for the current scale, swap to [Resend](https://resend.com) or SendGrid if it grows.
+- **Selectors can break** when government sites update their frontend; `discover.py` is the recovery tool.
+- **Be polite.** Default 60–120 s polling per category is conservative on purpose. Do not lower it — a single IP hammering a public-sector site is the surest way to get IP-banned and ruin it for everyone.
+
+## License
+
+[MIT](LICENSE) — © 2026 Boxin Wang. Built with [FastAPI](https://fastapi.tiangolo.com/), [Playwright](https://playwright.dev/), and a lot of Aachen winter coffee.
+
+Issues, PRs, ideas welcome.
