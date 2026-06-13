@@ -58,6 +58,27 @@ async def send_verification(cfg: Config, email: str, verify_token: str) -> None:
     log.info("sent verification email to %s", email)
 
 
+async def send_heartbeat(cfg: Config, to_email: str, summary: str) -> None:
+    """Daily 'I'm alive' email so the operator knows the scraper is still running
+    even during long dry spells with no slots."""
+    body = (
+        "Aachen Termin Tracker — 每日状态 / Daily status\n\n"
+        f"{summary}\n\n"
+        "这是一封自动状态邮件,说明追踪器在正常运行。如果你连续几天收不到这封信,"
+        "说明爬虫可能挂了,需要去服务器上看一眼。\n"
+        "This is an automated heartbeat confirming the tracker is running. "
+        "If these stop arriving for several days, the scraper is probably down.\n"
+    )
+    msg = _build_message(
+        cfg,
+        to_email=to_email,
+        subject="✅ Aachen Termin Tracker 运行正常 / daily status",
+        body_text=body,
+    )
+    await _send(cfg, msg)
+    log.info("sent heartbeat to %s", to_email)
+
+
 async def send_termin_alert(
     cfg: Config,
     email: str,

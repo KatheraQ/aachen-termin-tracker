@@ -9,4 +9,5 @@ data/browser_profile/
 config.local.yaml
 config.yaml
 data/discover_dump.json
+data/suspect_pages/
 data/*.log

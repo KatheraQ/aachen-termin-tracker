@@ -6,11 +6,12 @@ app:
   secret_key: "CHANGE_ME"                      # python -c 'import secrets; print(secrets.token_urlsafe(48))'
   host: "127.0.0.1"
   port: 8766
+  admin_email: ""                              # daily heartbeat recipient; empty = use Impressum email below
 
 scraper:
   target_url: "https://termine.staedteregion-aachen.de/auslaenderamt/"
-  poll_interval_min_seconds: 60
-  poll_interval_max_seconds: 120
+  poll_interval_min_seconds: 30                # lower = catch slots sooner, but don't hammer the site (IP-ban risk)
+  poll_interval_max_seconds: 60
   headless: true
   user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
   behoerde_label: "Ausländeramt"

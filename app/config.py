@@ -22,6 +22,9 @@ class AppCfg:
     secret_key: str
     host: str
     port: int
+    # Where the daily heartbeat status email goes. Falls back to the Impressum
+    # email when left empty. Set to "" to keep using that fallback.
+    admin_email: str = ""
 
 
 @dataclass

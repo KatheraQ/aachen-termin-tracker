@@ -18,6 +18,8 @@ import asyncio
 import logging
 import re
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import AsyncIterator, List
 
 from playwright.async_api import Browser, BrowserContext, Page, async_playwright
@@ -27,6 +29,9 @@ from .config import Anliegen, ScraperCfg
 log = logging.getLogger(__name__)
 
 STEP_TIMEOUT_MS = 15_000
+# When step 4 shows no "no-slots" banner yet we parse zero dates, we dump the
+# raw page here so the selectors can be fixed against a real "slots present" page.
+SUSPECT_DIR = Path(__file__).resolve().parent.parent / "data" / "suspect_pages"
 NO_SLOTS_PHRASES = (
     "Kein freier Termin",
     "Keine Zeiten verfügbar",
@@ -129,6 +134,25 @@ async def _step3_pick_standort(page: Page) -> bool:
     return True
 
 
+async def _dump_suspect_page(page: Page, body_text: str) -> None:
+    """Persist the full step-4 HTML when the page neither says 'no slots' nor
+    yields any parseable date. This is our only way to fix the selectors against
+    a page that actually has appointments, since those moments are rare."""
+    try:
+        SUSPECT_DIR.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        out = SUSPECT_DIR / f"suggest_{stamp}.html"
+        out.write_text(await page.content(), encoding="utf-8")
+        log.warning(
+            "step4: no 'no-slots' banner but 0 dates parsed — slots may be "
+            "present and our selectors missed them. Dumped page to %s | body: %s",
+            out,
+            " ".join(body_text.split())[:300],
+        )
+    except Exception:
+        log.exception("failed to dump suspect step-4 page")
+
+
 async def _step4_read_calendar(page: Page) -> List[str]:
     """Return ISO date strings (YYYY-MM-DD) for every available appointment day.
     Returns [] if the page reports no slots."""
@@ -169,6 +193,10 @@ async def _step4_read_calendar(page: Page) -> List[str]:
             return Array.from(out).sort();
         }"""
     )
+    if not dates:
+        # No "no-slots" banner above, yet nothing parsed: treat as suspicious and
+        # capture the page so we can repair the selectors next time slots appear.
+        await _dump_suspect_page(page, body_text)
     return dates
 
 
